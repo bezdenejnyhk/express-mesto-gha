@@ -43,31 +43,34 @@ const createCard = (req, res) => {
 
 const deleteCard = (req, res) => {
   const { cardId } = req.params;
-  Card.deleteOne({ cardId })
+
+  Card.deleteOne({ _id: cardId })
     .then((card) => {
-      if (card) {
-        res.send(card);
-        return;
+      if (card.deletedCount === 0) {
+        return res
+          .status(404)
+          .send({ message: 'Карточка с указанным _id не найдена.' });
       }
-      res.status(404);
-      res.send({ message: 'Карточка с указанным _id не найдена.' });
+      return res.send({ message: 'Карточка удалена' });
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400);
-        res.send({ message: 'Некорректный _id' });
-      } else {
-        res.status(500);
-        res.send({ message: 'На сервере произошла ошибка' });
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        return res.status(400).send({ message: 'Некорректный _id' });
       }
+      return res
+        .status(500)
+        .send({ message: 'На сервере произошла ошибка' });
     });
 };
 
 const likeCard = (req, res) => {
+  const owner = req.user._id;
+  const { cardId } = req.params;
+
   Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
-    { new: true }
+    cardId,
+    { $addToSet: { likes: owner } },
+    { new: true, runValidators: true }
   )
     .then((card) => checkCard(card, res))
     .catch((error) => {
@@ -81,10 +84,13 @@ const likeCard = (req, res) => {
 };
 
 const dislikeCard = (req, res) => {
+  const owner = req.user._id;
+  const { cardId } = req.params;
+
   Card.findByIdAndUpdate(
-    req.params.cardId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
+    cardId,
+    { $pull: { likes: owner } },
+    { new: true, runValidators: true }
   )
     .then((card) => checkCard(card, res))
     .catch((error) => {
@@ -102,5 +108,5 @@ module.exports = {
   createCard,
   deleteCard,
   likeCard,
-  dislikeCard
+  dislikeCard,
 };
