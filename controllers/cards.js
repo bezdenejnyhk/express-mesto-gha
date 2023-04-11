@@ -42,22 +42,24 @@ const createCard = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.deleteOne({ _id: req.params })
+  const { cardId } = req.params;
+  Card.deleteOne({ cardId })
     .then((card) => {
-      if (card.deletedCount === 0) {
-        return res
-          .status(404)
-          .send({ message: 'Карточка с указанным _id не найдена.' });
+      if (card) {
+        res.send(card);
+        return;
       }
-      return res.send({ message: 'Карточка удалена' });
+      res.status(404);
+      res.send({ message: 'Карточка с указанным _id не найдена.' });
     })
-    .catch((error) => {
-      if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Некорректный _id' });
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400);
+        res.send({ message: 'Некорректный _id' });
+      } else {
+        res.status(500);
+        res.send({ message: 'На сервере произошла ошибка' });
       }
-      return res
-        .status(500)
-        .send({ message: 'На сервере произошла ошибка' });
     });
 };
 
