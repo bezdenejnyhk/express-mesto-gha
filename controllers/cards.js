@@ -1,22 +1,24 @@
 const Card = require('../models/card');
+const { ERROR, ERROR_NOT_FOUND, ERROR_DEFAULT } = require('../utils/constants');
 
 const checkCard = (card, res) => {
   if (card) {
     return res.send(card);
   }
   return res
-    .status(404)
+    .status(ERROR_NOT_FOUND)
     .send({ message: 'Карточка с указанным _id не найдена.' });
 };
 
 const getCards = (req, res) => {
   Card.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => {
       res.send(cards);
     })
     .catch(() => {
       res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -31,12 +33,12 @@ const createCard = (req, res) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(ERROR).send({
           message: 'Переданы некорректные данные при создании карточки.',
         });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -48,17 +50,17 @@ const deleteCard = (req, res) => {
     .then((card) => {
       if (card.deletedCount === 0) {
         return res
-          .status(404)
+          .status(ERROR_NOT_FOUND)
           .send({ message: 'Карточка с указанным _id не найдена.' });
       }
       return res.send({ message: 'Карточка удалена' });
     })
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Некорректный _id' });
+        return res.status(ERROR).send({ message: 'Некорректный _id' });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -70,15 +72,15 @@ const likeCard = (req, res) => {
   Card.findByIdAndUpdate(
     cardId,
     { $addToSet: { likes: owner } },
-    { new: true, runValidators: true }
+    { new: true }
   )
     .then((card) => checkCard(card, res))
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Некорректный _id' });
+        return res.status(ERROR).send({ message: 'Некорректный _id' });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -90,15 +92,15 @@ const dislikeCard = (req, res) => {
   Card.findByIdAndUpdate(
     cardId,
     { $pull: { likes: owner } },
-    { new: true, runValidators: true }
+    { new: true }
   )
     .then((card) => checkCard(card, res))
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Некорректный _id' });
+        return res.status(ERROR).send({ message: 'Некорректный _id' });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };

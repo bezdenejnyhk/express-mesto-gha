@@ -1,11 +1,12 @@
 const User = require('../models/user');
+const { ERROR, ERROR_NOT_FOUND, ERROR_DEFAULT } = require('../utils/constants');
 
 const checkUser = (user, res) => {
   if (user) {
     return res.send(user);
   }
   return res
-    .status(404)
+    .status(ERROR_NOT_FOUND)
     .send({ message: 'Пользователь по указанному _id не найден' });
 };
 
@@ -14,7 +15,7 @@ const getUsers = (req, res) => {
     .then((users) => res.send({ data: users }))
     .catch(() => {
       res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -28,12 +29,12 @@ const createUser = (req, res) => {
     })
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(ERROR).send({
           message: 'Переданы некорректные данные при создании пользователя',
         });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -45,10 +46,10 @@ const getUserById = (req, res) => {
     .then((user) => checkUser(user, res))
     .catch((error) => {
       if (error.name === 'CastError') {
-        return res.status(400).send({ message: 'Некорректный _id' });
+        return res.status(ERROR).send({ message: 'Некорректный _id' });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -59,18 +60,17 @@ const editProfile = (req, res) => {
 
   User.findByIdAndUpdate(
     owner,
-    { name, about },
-    { new: true, runValidators: true }
+    { name, about }
   )
     .then((user) => checkUser(user, res))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(ERROR).send({
           message: 'Переданы некорректные данные при обновлении профиля.',
         });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
@@ -83,12 +83,12 @@ const updateAvatar = (req, res) => {
     .then((user) => checkUser(user, res))
     .catch((error) => {
       if (error.name === 'ValidationError') {
-        return res.status(400).send({
+        return res.status(ERROR).send({
           message: 'Переданы некорректные данные при обновлении аватара.',
         });
       }
       return res
-        .status(500)
+        .status(ERROR_DEFAULT)
         .send({ message: 'На сервере произошла ошибка' });
     });
 };
