@@ -60,7 +60,8 @@ const editProfile = (req, res) => {
 
   User.findByIdAndUpdate(
     owner,
-    { name, about }
+    { name, about },
+    { new: true, runValidators: true }
   )
     .then((user) => checkUser(user, res))
     .catch((error) => {
