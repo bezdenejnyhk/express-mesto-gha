@@ -1,9 +1,5 @@
-const ERROR = 400;
-const ERROR_NOT_FOUND = 404;
-const ERROR_DEFAULT = 500;
+const JWT_SECRET = 'some-secret-key';
 
 module.exports = {
-  ERROR,
-  ERROR_NOT_FOUND,
-  ERROR_DEFAULT,
+  JWT_SECRET,
 };
