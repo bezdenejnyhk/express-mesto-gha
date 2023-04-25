@@ -35,7 +35,9 @@ const createUser = (req, res, next) => {
               'Пользователь с такой почтой уже зарегистрирвован'
             )
           );
+          return;
         }
+        next(error);
       });
   });
 };
