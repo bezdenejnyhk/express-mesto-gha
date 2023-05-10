@@ -7,8 +7,7 @@ authRouter.post('/signup', celebrate({
     avatar: Joi.string().pattern(/^((http|https:\/\/.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*\.[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)$/),
     about: Joi.string().min(2).max(30),
     name: Joi.string().min(2).max(30),
-    email: Joi.string().email().required().min(2)
-      .max(30),
+    email: Joi.string().email().required(),
     password: Joi.string().required().min(8),
   }).unknown(true),
 }), createUser);

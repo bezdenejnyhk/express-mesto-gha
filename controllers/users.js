@@ -6,40 +6,50 @@ const { JWT_SECRET } = require('../utils/constants');
 
 const checkUser = (user, res) => {
   if (!user) {
-    throw new customError.NotFound('Нет пользователя с таким id');
+    throw new customError.NotFoundError('Нет пользователя с таким id');
   }
   return res.send(user);
 };
 
 const createUser = (req, res, next) => {
-  bcrypt.hash(req.body.password, 10).then((hash) => {
-    User.create({
-      email: req.body.email,
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+  return bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
       password: hash,
-      name: req.body.name,
-      about: req.body.about,
-      avatar: req.body.avatar,
-    })
-      .then((newUser) => {
-        res.status(201).send({
-          email: newUser.email,
-          name: newUser.name,
-          about: newUser.about,
-          avatar: newUser.avatar,
-        });
-      })
-      .catch((error) => {
-        if (error.code === 11000) {
-          next(
-            new customError.Conflict(
-              'Пользователь с такой почтой уже зарегистрирвован'
-            )
-          );
-          return;
-        }
-        next(error);
+    }))
+    .then((newUser) => {
+      res.send({
+        name: newUser.name,
+        about: newUser.about,
+        avatar: newUser.avatar,
+        email: newUser.email,
+        _id: newUser._id,
       });
-  });
+    })
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(
+          new customError.ConflictError('Пользователь с такой почтой уже зарегистрирвован')
+        );
+      }
+      if (err.code === 400) {
+        next(
+          new customError.ValidationError('Введены некорректные данные')
+        );
+      }
+      next(err);
+    });
 };
 
 const login = (req, res, next) => {
@@ -49,11 +59,11 @@ const login = (req, res, next) => {
     .select('+password')
     .then((user) => {
       if (!user) {
-        throw new customError.Unauthorized('Неверные почта или пароль');
+        throw new customError.UnauthorizedError('Неверные почта или пароль');
       }
       return bcrypt.compare(password, user.password).then((matched) => {
         if (!matched) {
-          next(new customError.Unauthorized('Неверные почта или пароль'));
+          next(new customError.UnauthorizedError('Неверные почта или пароль'));
         }
         const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
           expiresIn: '7d',
@@ -93,7 +103,7 @@ const editProfile = (req, res, next) => {
   User.findByIdAndUpdate(
     owner,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true }
   )
     .then((user) => checkUser(user, res))
     .catch(next);
@@ -103,7 +113,7 @@ const updateAvatar = (req, res, next) => {
   const owner = req.user._id;
   const avatar = req.body;
 
-  User.findByIdAndUpdate(owner, avatar, { new: true, runValidators: true })
+  User.findByIdAndUpdate(owner, avatar, { new: true })
     .then((user) => checkUser(user, res))
     .catch(next);
 };
