@@ -25,13 +25,15 @@ app.use((req, res) => {
 });
 
 app.use((err, req, res, next) => {
-  console.log(err);
-  const { statusCode = 500, message } = err;
-
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'На сервере произошла ошибка' : message,
-  });
-
+  const { statusCode = 500, message } = err;// если у ошибки нет статуса, выставляем 500
+  res
+    .status(statusCode)
+    .send({
+      // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'Что-то на серверной стороне...'
+        : message,
+    });
   next();
 });
 
