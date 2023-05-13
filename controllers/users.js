@@ -103,7 +103,7 @@ const editProfile = (req, res, next) => {
   User.findByIdAndUpdate(
     owner,
     { name, about },
-    { new: true }
+    { new: true, runValidators: true }
   )
     .then((user) => checkUser(user, res))
     .catch(next);
@@ -113,7 +113,7 @@ const updateAvatar = (req, res, next) => {
   const owner = req.user._id;
   const avatar = req.body;
 
-  User.findByIdAndUpdate(owner, avatar, { new: true })
+  User.findByIdAndUpdate(owner, avatar, { new: true, runValidators: true })
     .then((user) => checkUser(user, res))
     .catch(next);
 };
