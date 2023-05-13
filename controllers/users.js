@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const customError = require('../errors');
+const customError = require('../errors/index');
 const { JWT_SECRET } = require('../utils/constants');
 
 const checkUser = (user, res) => {
@@ -40,7 +40,7 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.code === 11000) {
         next(
-          new customError.ConflictError('Пользователь с такой почтой уже зарегистрирвован')
+          new customError.ConflictError('Пользователь с такой почтой уже зарегистрирован')
         );
       }
       if (err.code === 400) {
