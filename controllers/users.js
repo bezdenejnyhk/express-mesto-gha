@@ -12,44 +12,32 @@ const checkUser = (user, res) => {
 };
 
 const createUser = (req, res, next) => {
-  const {
-    name,
-    about,
-    avatar,
-    email,
-    password,
-  } = req.body;
-  return bcrypt
-    .hash(password, 10)
-    .then((hash) => User.create({
-      name,
-      about,
-      avatar,
-      email,
+  bcrypt.hash(req.body.password, 10).then((hash) => {
+    User.create({
+      email: req.body.email,
       password: hash,
-    }))
-    .then((newUser) => {
-      res.send({
-        name: newUser.name,
-        about: newUser.about,
-        avatar: newUser.avatar,
-        email: newUser.email,
-        _id: newUser._id,
-      });
+      name: req.body.name,
+      about: req.body.about,
+      avatar: req.body.avatar,
     })
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(
-          new customError.ConflictError('Пользователь с такой почтой уже зарегистрирован')
-        );
-      }
-      if (err.code === 400) {
-        next(
-          new customError.ValidationError('Введены некорректные данные')
-        );
-      }
-      next(err);
-    });
+      .then((newUser) => {
+        res.status(201).send({
+          email: newUser.email,
+          name: newUser.name,
+          about: newUser.about,
+          avatar: newUser.avatar,
+        });
+      })
+      .catch((error) => {
+        if (error.code === 11000) {
+          next(
+            new customError.ConflictError(
+              'Пользователь с такой почтой уже зарегистрирвован'
+            )
+          );
+        }
+      });
+  });
 };
 
 const login = (req, res, next) => {
@@ -103,7 +91,7 @@ const editProfile = (req, res, next) => {
   User.findByIdAndUpdate(
     owner,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true }
   )
     .then((user) => checkUser(user, res))
     .catch(next);
@@ -113,7 +101,7 @@ const updateAvatar = (req, res, next) => {
   const owner = req.user._id;
   const avatar = req.body;
 
-  User.findByIdAndUpdate(owner, avatar, { new: true, runValidators: true })
+  User.findByIdAndUpdate(owner, avatar, { new: true })
     .then((user) => checkUser(user, res))
     .catch(next);
 };
