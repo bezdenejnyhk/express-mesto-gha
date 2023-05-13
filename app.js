@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const bodyParser = require('body-parser');
 const router = require('./routes');
-const authRouter = require('./routes/auth');
 const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
@@ -14,7 +13,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(authRouter);
 app.use(auth);
 app.use(router);
 

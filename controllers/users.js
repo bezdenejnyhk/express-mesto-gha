@@ -97,13 +97,38 @@ const editProfile = (req, res, next) => {
     .catch(next);
 };
 
-const updateAvatar = (req, res, next) => {
-  const owner = req.user._id;
-  const avatar = req.body;
+// const updateAvatar = (req, res, next) => {
+//   const owner = req.user._id;
+//   const avatar = req.body;
 
-  User.findByIdAndUpdate(owner, avatar, { new: true })
-    .then((user) => checkUser(user, res))
-    .catch(next);
+//   User.findByIdAndUpdate(owner, avatar, { new: true })
+//     .then((user) => checkUser(user, res))
+//     .catch(next);
+// };
+
+const updateAvatar = (req, res, next) => {
+  const { avatar } = req.body;
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  )
+    .then((user) => {
+      if (!user) {
+        next(new customError.NotFoundError('Пользователь по указанному _id не найден'));
+        return;
+      }
+      res.send({ user });
+    })
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(
+          new customError.ValidationError('Переданы некорректные данные при обновлении профиля'),
+        );
+        return;
+      }
+      next(err);
+    });
 };
 
 module.exports = {
