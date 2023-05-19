@@ -1,6 +1,6 @@
 const Card = require('../models/card');
 const { NotFoundError, ValidationError, ForbiddenError } = require('../errors');
-const { handleSucsessResponse } = require('../utils/handleSucsessResponse')
+const { handleSucsessResponse } = require('../utils/handleSucsessResponse');
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
