@@ -1,5 +1,6 @@
 const Card = require('../models/card');
 const { NotFoundError, ValidationError, ForbiddenError } = require('../errors');
+const { handleSucsessResponse } = require('../utils/handleSucsessResponse')
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
@@ -25,15 +26,23 @@ const getCards = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-
-  Card.deleteOne({ _id: cardId })
+  Card.findById(cardId)
     .then((card) => {
-      if (card.deletedCount === 0) {
-        throw new NotFoundError('Карточка с указанным _id не найдена.');
+      if (!card) {
+        throw new NotFoundError('Пользователь по указанному _id не найден');
+      } else if (card.owner.toString() !== req.user._id) {
+        throw new ForbiddenError('Чужую карточку удалить нельзя');
+      } else {
+        return Card.deleteOne({ _id: cardId })
+          .then((data) => { handleSucsessResponse(res, 200, data); });
       }
-      return res.send({ message: 'Карточка удалена' });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return next(new ValidationError('Переданы некорректные данные '));
+      }
+      return next(err);
+    });
 };
 
 const likeCard = (req, res, next) => {
