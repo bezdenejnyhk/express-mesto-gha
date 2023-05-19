@@ -7,14 +7,16 @@ const auth = require('../middlewares/auth');
 const NotFoundError = require('../errors/NotFoundError');
 
 router.post('/signup', celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().pattern(/^((http|https:\/\/.)[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*\.[a-zA-Z0-9-._~:/?#[\]@!$&'()*+,;=]*)$/),
-    about: Joi.string().min(2).max(30),
-    name: Joi.string().min(2).max(30),
-    email: Joi.string().email().required(),
-    password: Joi.string().required().min(8),
-  }).unknown(true),
-}), createUser);
+    body: Joi.object().keys({
+      name: Joi.string().min(2).max(30),
+      about: Joi.string().min(2).max(30),
+      avatar: Joi.string().regex(regURL),
+      email: Joi.string().required().email(),
+      password: Joi.string().required(),
+    }),
+  }),
+  createUser,
+);
 
 router.post('/signin', celebrate({
   body: Joi.object().keys({
@@ -23,8 +25,8 @@ router.post('/signin', celebrate({
   }),
 }), login);
 
-router.use('/users', usersRouter);
-router.use('/cards', cardsRouter);
+router.use('/users', auth, usersRouter);
+router.use('/cards', auth, cardsRouter);
 router.use('*', auth, (req, res, next) => {
   next(new NotFoundError('Такой страницы не существует'));
 });
