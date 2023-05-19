@@ -28,7 +28,7 @@ const deleteCard = (req, res, next) => {
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
-        next(new NotFound('Карточка с указанным _id не найдена.'));
+        next(new NotFoundError('Карточка с указанным _id не найдена.'));
         return
       } else {
         const owner = card.owner.toString();
@@ -37,14 +37,14 @@ const deleteCard = (req, res, next) => {
             res.send({ card });
           });
         }
-        next(new Forbiden('Чужие карточки удалить нельзя!'));
+        next(new ForbiddenError('Чужие карточки удалить нельзя!'));
         return
       }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         next(
-          new BadRequest('Переданы некорректные данные для удаления карточки.'),
+          new ValidationError('Переданы некорректные данные для удаления карточки.'),
         );
         return;
       }
